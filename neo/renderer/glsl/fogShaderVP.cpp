@@ -18,31 +18,34 @@
 #include "glsl_shaders.h"
 
 const char * const fogShaderVP = R"(
-void main(
-	float4 attr_Vertex,
-	uniform float4x4 u_modelViewProjectionMatrix,
-	uniform float4x4 u_fogMatrix,
-	float2 out var_TexFog : TEXCOORD0,
-	float2 out var_TexFogEnter : TEXCOORD1,
-	float4 out gl_Position : POSITION
-) {
-  gl_Position = mul(attr_Vertex, u_modelViewProjectionMatrix);
+#version 100
+precision mediump float;
+  
+// In
+attribute highp vec4 attr_Vertex;      // input Vertex Coordinates
+  
+// Uniforms
+uniform highp mat4 u_modelViewProjectionMatrix;
+uniform mat4 u_fogMatrix;        // fogPlanes 0, 1, 3 (CATION: not 2!), 2
+  
+// Out
+// gl_Position                   // output Vertex Coordinates
+varying vec2 var_TexFog;         // output Fog TexCoord
+varying vec2 var_TexFogEnter;    // output FogEnter TexCoord
+  
+void main(void)
+{
+  gl_Position = u_modelViewProjectionMatrix * attr_Vertex;
 
   // What will be computed:
   //
-  // vec4 tc;
-  // tc.x = dot( u_fogMatrix[0], attr_Vertex );
-  // tc.y = dot( u_fogMatrix[1], attr_Vertex );
-  // tc.z = 0.0;
-  // tc.w = dot( u_fogMatrix[2], attr_Vertex );
-  // var_TexFog.xy = tc.xy / tc.w;
-  //
-  // var_TexFogEnter.x = dot( u_fogMatrix[3], attr_Vertex );
-  // var_TexFogEnter.y = 0.5;
+  // var_TexFog.x      = dot(u_fogMatrix[0], attr_Vertex);
+  // var_TexFog.y      = dot(u_fogMatrix[1], attr_Vertex);
+  // var_TexFogEnter.x = dot(u_fogMatrix[2], attr_Vertex);
+  // var_TexFogEnter.y = dot(u_fogMatrix[3], attr_Vertex);
 
   // Optimized version:
-  //
-  var_TexFog = float2(dot( u_fogMatrix[0], attr_Vertex ), dot( u_fogMatrix[1], attr_Vertex ));
-  var_TexFogEnter = float2(dot(u_fogMatrix[2], attr_Vertex),dot(u_fogMatrix[3], attr_Vertex));
+  var_TexFog      = vec2(dot(u_fogMatrix[0], attr_Vertex),dot(u_fogMatrix[1], attr_Vertex));
+  var_TexFogEnter = vec2(dot(u_fogMatrix[2], attr_Vertex),dot(u_fogMatrix[3], attr_Vertex));
 }
 )";
